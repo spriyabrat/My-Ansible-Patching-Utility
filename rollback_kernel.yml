@@ -1,0 +1,57 @@
+---
+- name: Kernel Downgrade
+  hosts: dev
+  become: yes
+
+  vars:
+     kernel_version: "{{ kernel_version }}" #"5.4.0-1110-aws"
+
+  tasks:
+    - name: Capture current kernel version
+      shell: uname -r
+      register: current_kernel
+      tags: Rollback_Kernel
+
+    - name: Backup GRUB Configuration
+      command: cp /etc/default/grub /etc/default/grub.bak
+      register: backup_grub
+      ignore_errors: yes
+      tags: Rollback_Kernel
+
+    - name: Edit GRUB Configuration
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_DEFAULT='
+        line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux {{ kernel_version }}"'
+      when: backup_grub is success
+      tags: Rollback_Kernel
+
+    - name: Update GRUB Menu
+      command: update-grub
+      when: backup_grub is success
+      tags: Rollback_Kernel
+ 
+    - name: Reboot the System
+      reboot:
+        reboot_timeout: 200
+      when: backup_grub is success
+      tags: Rollback_Kernel
+
+    - name: Edit GRUB Configuration
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_DEFAULT='
+        line: 'GRUB_DEFAULT=0'
+      when: backup_grub is success
+      tags: Rollback_Kernel
+
+    - name: Capture recent kernel version
+      shell: uname -r
+      register: recent_kernel
+      tags: Rollback_Kernel
+
+    - name: Display rollback message
+      debug:
+        msg: "Rollback to previous version: {{ recent_kernel.stdout }} from {{current_kernel.stdout}}"
+      when: backup_grub is success
+      tags: Rollback_Kernel
