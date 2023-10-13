@@ -2,72 +2,153 @@
 
 # Help message
 help_message() {
-  echo -e "Usage: \033[1m./patch_utility\033[0m [OPTIONS]"
+  echo -e "Usage: \033[1m./patch_utility.sh\033[0m [OPTIONS]"
   echo -e "Options:"
   echo -e "  \033[1m--list\033[0m        Display available tags"
   echo -e "  \033[1m--help\033[0m        Display this help message"
+  echo -e "  \033[1m--commands\033[0m    Display list of available commands"
   echo
   echo -e "\033[1mTag Usage and Command:\033[0m"
-
-  echo -e "  \033[1;31mDownload_Report\033[0m     - Fetch server list"
-  echo -e "    \033[0mDescription:\033[0m This tag is used to fetch the server list with Pro status and Kernel Upgrade status."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Download_Report \"kernel_version=5.4.0-1110-aws\""
   echo
-
-  echo -e "  \033[1;31mView_Console\033[0m        - View console"
+  echo -e "  \033[1;31mdownload_report\033[0m      - Download server list report"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to download server list with Pro status and Kernel Upgrade status."
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[0,32m[1]\033[0m \033[1m./patch_utility.sh download_report \"cli_hosts=dev\"\033[0m"
+  echo
+  echo -e "  \033[1;31mview_console\033[0m      - View console"
+  echo
   echo -e "    \033[0mDescription:\033[0m This tag is used to view the dashboard where the detailed information of Diffrent Servers will be displayed"
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[0m"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility View_Console"
   echo
-
-  echo -e "  \033[1;31mUpgrade_Kernel\033[0m      - Upgrade the kernel"
-  echo -e "    \033[0mDescription:\033[0m This tag is used to upgrade the kernel to latest version on the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Upgrade_Kernel \"kernel_version=5.4.0-1110-aws\""
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
   echo
-
-  echo -e "  \033[1;31mSet_Cadence\033[0m         - Set cadence"
-  echo -e "    \033[0mDescription:\033[0m This tag is for changing the check-interval the config file of canonical-livepatch on the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Set_Cadence \"check_time_interval=10m\""
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
   echo
-
-  echo -e "  \033[1;31mApply_Security_Patch\033[0m - Apply security patch"
-  echo -e "    \033[0mDescription:\033[0m This tag is used to apply available security patches on the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Apply_Security_Patch \"host=example.com\""
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh view_console \"cli_hosts=dev\"\033[0m"
   echo
-
-  echo -e "  \033[1;31mAttach_Pro_License\033[0m           - Attach Pro License"
-  echo -e "    \033[0mDescription:\033[0m This tag is used to attach Pro License on the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Attach_Pro_License \"host=example.com\""
+  echo -e "  \033[1;31mupgrade_kernel\033[0m      - Upgrade the kernel"
   echo
-
-  echo -e "  \033[1;31mDetach_Pro_License\033[0m           - Detach Pro License"
-  echo -e "    \033[0mDescription:\033[0m This tag is used to detach Pro License from the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Detach_Pro_License \"host=example.com\""
+  echo -e "    \033[0mDescription:\033[0m This tag is used to upgrade the kernel to the latest version on the server."
   echo
-
-  echo -e "  \033[1;31mRollback_Kernel\033[0m      - Rollback the kernel"
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo -e "      \033[0m\"kernel_version=value\"\033[0m  #Specify the kernel version to be patched"
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh upgrade_kernel \"cli_hosts=dev kernel_version=5.4.0-1110\"\033[0m"
+  echo
+  echo -e "  \033[1;31mset_cadence\033[0m      - Set Cadence for Canonical Livepatch"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to upgrade the kernel to the latest version on the server."
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m            #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo -e "      \033[0m\"check_time_interval=value\"\033[0m  #Specify the time interval to set"
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh set_cadence \"cli_hosts=dev check_time_interval=110\"\033[0m"
+  echo
+  echo -e "  \033[1;31mapply_security_patch\033[0m      - Apply security patch"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to apply available security patches on the server"
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh apply_security_patch \"cli_hosts=dev\"\033[0m"
+  echo
+  echo -e "  \033[1;31mattach_pro_license\033[0m      - Attach Pro License"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to attach Pro License on the server"
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh attach_pro_license \"cli_hosts=dev\"\033[0m"
+  echo
+  echo -e "  \033[1;31mdetach_pro_license\033[0m      - Detach Pro License"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to detach Pro License from the server"
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh detach_pro_license \"cli_hosts=dev\"\033[0m"
+  echo
+  echo -e "  \033[1;31mrollback_kernel\033[0m      - Rollback the kernel"
+  echo
   echo -e "    \033[0mDescription:\033[0m This tag is used to rollback the kernel to its previous on the server."
-  echo -e "    \033[0mCommand:\033[0m \033[1m./patch_utility [tags] \033[1m'["parameters=value"]\033[0m'"
-  echo -e "    \033[0mExample:\033[0m ./patch_utility Rollback_Kernel \"host=example.com\""
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh tag_name parameters\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       #The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo -e "      \033[0m\"kernel_version=value\"\033[0m  #Specify the old kernel version to which kernel should be downgraded"
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050-aws\"\033[0m"
+  echo
 }
 
 # Function to display available tags
 display_tags() {
   echo "Available tags:"
-  echo "1. Download_Report"
-  echo "2. View_Console"
-  echo "3. Upgrade_Kernel"
-  echo "4. Set_Cadence"
-  echo "5. Apply_Security_Patch"
-  echo "6. Attach_Pro_License"
-  echo "7. Detach_Pro_License"
-  echo "8. Rollback_Kernel"
+  echo "1. download_report"
+  echo "2. view_console"
+  echo "3. upgrade_kernel"
+  echo "4. set_cadence"
+  echo "5. apply_security_patch"
+  echo "6. attach_pro_license"
+  echo "7. detach_pro_license"
+  echo "8. rollback_kernel"
+}
+
+# Function to display available commands
+display_commands() {
+  echo
+  echo "Available commands:"
+  echo
+  echo "./patch_utility.sh --help"
+  echo "./patch_utility.sh --list"
+  echo "./patch_utility.sh --commands"
+  echo "./patch_utility.sh download_report \"cli_hosts=dev\""
+  echo "./patch_utility.sh view_console \"cli_hosts=dev\""
+  echo "./patch_utility.sh upgrade_kernel \"cli_hosts=dev kernel_version=5.4.0-1110\""
+  echo "./patch_utility.sh set_cadence \"cli_hosts=dev check_time_interval=101\""
+  echo "./patch_utility.sh apply_security_patch \"cli_hosts=dev\""
+  echo "./patch_utility.sh attach_pro_license \"cli_hosts=dev\""
+  echo "./patch_utility.sh detach_pro_license \"cli_hosts=dev\""
+  echo "./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050-aws\""
+  echo
 }
 
 # Function to run Ansible playbook based on the provided tag and parameters
@@ -76,28 +157,28 @@ run_playbook_by_tag() {
   local parameters="$2"
 
   case $tag in
-    "Download_Report")
+    "download_report")
       ansible-playbook -i inventory.yml fetch_server_list.yml --tags "$tag" -e "$parameters"
       ;;
     "view_console")
-      ansible-playbook -i inventory.yml view_console.yml --tags "$tag" -e "$parameters"
+      ansible-playbook -i inventory.yml main.yml --tags "$tag" -e "$parameters"
       ;;
     "upgrade_kernel")
       ansible-playbook -i inventory.yml kernel.yml --tags "$tag" -e "$parameters"
       ;;
-    "Set_Cadence")
+    "set_cadence")
       ansible-playbook -i inventory.yml cadence.yml --tags "$tag" -e "$parameters"
       ;;
     "apply_security_patch")
       ansible-playbook -i inventory.yml security_patch.yml --tags "$tag" -e "$parameters"
       ;;
-    "attach_pro")
+    "attach_pro_license")
       ansible-playbook -i inventory.yml pro.yml --tags "$tag" -e "$parameters"
       ;;
-    "detach_pro")
+    "detach_pro_license")
       ansible-playbook -i inventory.yml pro_detach.yml --tags "$tag" -e "$parameters"
       ;;
-    "kernel_rollback")
+    "rollback_kernel")
       ansible-playbook -i inventory.yml rollback.yml --tags "$tag" -e "$parameters"
       ;;
     *)
@@ -111,14 +192,23 @@ run_playbook_by_tag() {
 
 # Check if no arguments are provided
 if [ "$#" -eq 0 ]; then
-  echo "Put Required tags and Parameters"
-  echo -e "Refer to the help section using: \033[1m./patch_utility --help\033[0m"
+  echo
+  echo "Include the necessary tags and parameters by consulting the following:"
+  echo
+  echo -e "1.Access the help section with the command:       \033[1m./patch_utility.sh --help\033[0m"
+  echo -e "2.Find list of commands for specific tasks using: \033[1m./patch_utility.sh --commands\033[0m"
   exit 0
 fi
 
 # Check if --help is passed and display help message
 if [ "$1" == "--help" ]; then
   help_message
+  exit 0
+fi
+
+# Check if the --commands option is passed and display commands
+if [ "$1" == "--commands" ]; then
+  display_commands
   exit 0
 fi
 
@@ -139,7 +229,7 @@ parameters="${@:2}"
 
 # Display available tags and validate the provided tag
 case $tag in
-  "Download_Report" | "view_console" | "upgrade_kernel" | "Set_Cadence" | "apply_security_patch" | "attach_pro" | "detach_pro" | "kernel_rollback")
+  "download_report" | "view_console" | "upgrade_kernel" | "set_cadence" | "apply_security_patch" | "attach_pro_license" | "detach_pro_license" | "rollback_kernel")
     echo "Running playbook with tag: $tag and parameters: $parameters"
     run_playbook_by_tag "$tag" "$parameters"
     ;;
