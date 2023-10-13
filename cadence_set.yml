@@ -1,6 +1,6 @@
 ---
 - name: Update canonical-livepatch config
-  hosts: dev
+  hosts: "{{ cli_hosts }}"
   become: yes
 
   vars:
@@ -10,29 +10,29 @@
     - name: Pre-check - Run "sudo canonical-livepatch config" before changing interval
       command: "sudo canonical-livepatch config"
       register: pre_check_output
-      tags: Set_Cadence
+      tags: set_cadence
 
     - debug:
         var: pre_check_output.stdout_lines
-      tags: Set_Cadence
+      tags: set_cadence
 
   tasks:
     - name: Change the check-interval in the config file
       command: "sudo canonical-livepatch config check-interval={{ check_interval }}"
       register: change_interval_output
-      tags: Set_Cadence
+      tags: set_cadence
 
     - debug:
         var: change_interval_output.stdout_lines
       when: change_interval_output.rc == 0
-      tags: Set_Cadence
+      tags: set_cadence
 
   post_tasks:
     - name: Post-check - Run "sudo canonical-livepatch config" after changing interval
       command: "sudo canonical-livepatch config"
       register: post_check_output
-      tags: Set_Cadence
+      tags: set_cadence
 
     - debug:
         var: post_check_output.stdout_lines
-      tags: Set_Cadence
+      tags: set_cadence
