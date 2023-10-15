@@ -1,0 +1,31 @@
+#how to run the playbook: ansible-playbook2 ansible2/adhoc_playbooks/ubuntu-pro.yml -e 'cli_hosts=tag_Name_<hostname> cli_cloud_provider=ec2 cli_ec2_dc_switch=<n-virginia|beijing>' --vault-password-file ~/.vault -D
+
+- name: Upgrade Ubuntu 18.04 to Ubuntu 18.04 pro
+  hosts: "{{ cli_hosts }}"
+  become: yes
+
+  tasks:
+    - name: Install ubuntu-advantage-tools
+      apt:
+        name: ubuntu-advantage-tools
+        state: latest
+        update_cache: yes
+      tags: attach_pro_license
+
+    - name: Check if Ubuntu Pro is supported
+      command: pro status
+      register: pro_status
+      changed_when: false
+      tags: attach_pro_license
+
+    - name: Activate Ubuntu Pro license
+      command: pro attach C13ZzcxfjYkS8uyebARCU2pfTZ1PmM
+      register: results
+      when: ansible_distribution_release == "bionic"
+      tags: attach_pro_license
+      
+    - name: Display Ubuntu Pro ESM status
+      debug:
+        msg: "License activated successfully"
+      when: results.rc == 0
+      tags: attach_pro_license
