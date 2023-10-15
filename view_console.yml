@@ -1,0 +1,84 @@
+---
+- name: Filter servers based on kernel version
+  hosts: "{{ cli_hosts }}"
+  gather_facts: true
+  
+  #vars:
+  #kernel_version: "{{ kernel_version }}"
+
+  tasks:
+    - name: remove files
+      command: rm -rf /home/saswat.beurik/upgrade/new_kernel.txt
+      delegate_to: localhost
+      tags: view_console
+
+    - name: Get kernel version
+      shell: uname -r
+      register: kernel_version_output
+      tags: view_console
+
+    - name: Run apt-cache policy to get candidate version
+      command: "apt-cache policy linux-image-aws"
+      register: apt_cache_output
+      tags: view_console
+
+    - name: Extract candidate version
+      set_fact:
+        candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() }}"
+      tags: view_console
+
+    - name: Set kernel upgrade status
+      set_fact:
+        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == candidate_version else 'Not Desired' }}"
+      tags: view_console
+        #- name: Debug current and input kernel versions
+        #debug:
+        #msg:
+        # - "Current Kernel Version: {{ kernel_version_output.stdout }}"
+        # - "Input Kernel Version: {{ kernel_version }}"
+
+    - name: Fetch Ubuntu Release Status
+      shell: pro security-status
+      register: ubuntu_security_status_output
+      tags: view_console
+
+    - name: Determine Ubuntu status based on the command output
+      set_fact:
+        ubuntu_release_status: "{{ 'Ubuntu Pro' if 'This machine is attached to an Ubuntu Pro subscription' in ubuntu_security_status_output.stdout else 'Ubuntu Standard' }}"
+      tags: view_console
+
+    - name: Get Kernel Last Upgraded Date
+      shell: cat /var/log/dpkg.log.1 | grep "install linux-image" | tail -n 1 | awk '{print $1, $2}'
+      register: kernel_last_upgraded_date
+      tags: view_console
+
+    - name: Get Unattended Upgrades status
+      command: systemctl status unattended-upgrades.service
+      register: unattended_upgrades_status
+      ignore_errors: true
+      tags: view_console
+
+    - name: Set Unattended Upgrades status as a fact
+      set_fact:
+        unattended_upgrades_status: "{{ 'active' if unattended_upgrades_status.rc == 0 and 'Active: active (running)' in (unattended_upgrades_status.stdout | default('')) else 'inactive' }}"
+      tags: view_console
+
+    - name: Get check-interval from canonical-livepatch config
+      shell: sudo canonical-livepatch config
+      register: canonical_livepatch_config_output
+      tags: view_console
+
+    - name: Extract check-interval value
+      set_fact:
+        check_interval: "{{ canonical_livepatch_config_output.stdout_lines | select('match', 'check-interval: (.+)') | map('regex_replace', 'check-interval: (.+) # minutes', '\\1') | first | regex_replace(' ', '') }}"
+      tags: view_console
+
+    - name: Debug check-interval value
+      debug:
+        msg:
+          - "Check Interval: {{ check_interval }}"
+      tags: view_console
+
+    - name: Filter servers with upgraded kernel
+      local_action: shell echo "{{ inventory_hostname }} | {{ ansible_distribution_version }} | {{ ansible_kernel }} | {{ ubuntu_release_status }} | {{ kernel_upgrade_status }} | {{ kernel_last_upgraded_date.stdout }} | {{ unattended_upgrades_status }} | {{ check_interval }} | {{ candidate_version }}" >> new_kernel.txt
+      tags: view_console
