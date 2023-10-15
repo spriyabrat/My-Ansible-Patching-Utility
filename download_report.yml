@@ -25,7 +25,7 @@
 
     - name: Extract candidate version
       set_fact:
-        candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() }}"
+        candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('(\\.\\d+)$', '') }}"
       tags: download_report
 
     - name: Set kernel upgrade status
@@ -80,21 +80,35 @@
         msg:
           - "Check Interval: {{ check_interval }}"
       tags: download_report
+     
+      #- name: Run apt-cache policy to get candidate version
+      #command: "apt-cache policy linux-image-aws"
+      #register: apt_cache_output
+      #tags: download_report
+
+      #- name: Extract candidate version
+      #set_fact:
+      # candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() }}"
+      #tags: download_report
 
     - name: Filter servers with upgraded kernel
-      local_action: shell echo "{{ inventory_hostname }} {{ ansible_distribution_version }} {{ ansible_kernel }} {{ ubuntu_release_status }} {{ kernel_upgrade_status }} {{ unattended_upgrades_status }} {{ candidate_version }} {{ check_interval }}" >> server_list.txt
+      local_action:
+              module: lineinfile
+              dest: "Server_List{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
+              line: "Hostname,Ubuntu Version,Kernel Version,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Time"
+              create: yes
       tags: download_report
 
-    - name: Convert server_list.txt to server_list.csv and save with timestamp
-      shell: |
-        timestamp=$(date "+%Y-%m-%d_%H-%M-%S")
-        sed 's/ \| /,/g' /home/saswat.beurik/upgrade/server_list.txt > "/home/saswat.beurik/upgrade/server_list_$timestamp.csv"
-        rm -f /home/saswat.beurik/upgrade/server_list.txt
-      register: convert_result
-      delegate_to: localhost
+    - name: Filter servers with upgraded kernel
+      local_action:
+              module: lineinfile
+              dest: "Server_List_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
+              line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ candidate_version }},{{ check_interval }}"
+              create: yes
+      register: csv_file_result
       tags: download_report
-
-    - name: Display message indicating CSV download
+ 
+    - name: Display generated CSV file
       debug:
-        msg: "CSV file has been generated and saved as server_list_{{ convert_result.end.split('.')[0] }}.csv"
+        msg: "Server Report Downloaded: {{ csv_file_result.diff[0].after_header.split()[0] }}"
       tags: download_report
