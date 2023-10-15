@@ -103,6 +103,20 @@ help_message() {
   echo -e "    \033[0mExamples:\033[0m"
   echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh detach_pro_license \"cli_hosts=dev\"\033[0m"
   echo
+  echo
+  echo -e "  \033[1;31munattended_disabled\033[0m - Disable unattended upgrades on specific"
+  echo
+  echo -e "    \033[0mDescription:\033[0m This tag is used to prevent unattended upgrades on the server and ensure that only the designated task is executed."
+  echo
+  echo -e "    \033[0mCommand:\033[0m"
+  echo -e "      \033[1m./patch_utility.sh unattended_disabled \"cli_hosts=value\"\033[0m"
+  echo
+  echo -e "    \033[0mParameters:\033[0m"
+  echo -e "      \033[0m\"cli_hosts=value\"\033[0m       # The value can either be an IP address or the name of an AWS tag assigned to hosts."
+  echo
+  echo -e "    \033[0mExamples:\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh unattended_disabled \"cli_hosts=dev\"\033[0m"
+  echo
   echo -e "  \033[1;31mrollback_kernel\033[0m      - Rollback the kernel"
   echo
   echo -e "    \033[0mDescription:\033[0m This tag is used to rollback the kernel to its previous on the server."
@@ -129,7 +143,8 @@ display_tags() {
   echo "5. apply_security_patch"
   echo "6. attach_pro_license"
   echo "7. detach_pro_license"
-  echo "8. rollback_kernel"
+  echo "8. unattended_disabled"
+  echo "9. rollback_kernel"
 }
 
 # Function to display available commands
@@ -147,6 +162,7 @@ display_commands() {
   echo "./patch_utility.sh apply_security_patch \"cli_hosts=dev\""
   echo "./patch_utility.sh attach_pro_license \"cli_hosts=dev\""
   echo "./patch_utility.sh detach_pro_license \"cli_hosts=dev\""
+  echo "./patch_utility.sh unattended_disabled \"cli_hosts=dev\""
   echo "./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050-aws\""
   echo
 }
@@ -177,6 +193,9 @@ run_playbook_by_tag() {
       ;;
     "detach_pro_license")
       ansible-playbook -i inventory.yml pro_detach.yml --tags "$tag" -e "$parameters"
+      ;;
+    "unattended_disabled")
+      ansible-playbook -i inventory.yml kernel.yml --tags "$tag" -e "$parameters"
       ;;
     "rollback_kernel")
       ansible-playbook -i inventory.yml rollback.yml --tags "$tag" -e "$parameters"
@@ -229,7 +248,7 @@ parameters="${@:2}"
 
 # Display available tags and validate the provided tag
 case $tag in
-  "download_report" | "view_console" | "upgrade_kernel" | "set_cadence" | "apply_security_patch" | "attach_pro_license" | "detach_pro_license" | "rollback_kernel")
+  "download_report" | "view_console" | "upgrade_kernel" | "set_cadence" | "apply_security_patch" | "attach_pro_license" | "detach_pro_license" | "unattended_disabled" | "rollback_kernel")
     echo "Running playbook with tag: $tag and parameters: $parameters"
     run_playbook_by_tag "$tag" "$parameters"
     ;;
