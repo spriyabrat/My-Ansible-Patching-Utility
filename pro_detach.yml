@@ -1,0 +1,15 @@
+---
+- name: Rollback to Ubuntu 18.04 LTS
+  hosts: "{{ cli_hosts }}"
+  become: yes
+
+  tasks:
+    - name: Remove Ubuntu Pro packages
+      apt:
+        name: ubuntu-pro-meta-package
+        state: absent
+      tags: detach_pro_license
+
+    - name: Remove License
+      script: rollback.sh
+      tags: detach_pro_license
