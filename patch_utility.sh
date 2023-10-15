@@ -158,10 +158,10 @@ run_playbook_by_tag() {
 
   case $tag in
     "download_report")
-      ansible-playbook -i inventory.yml fetch_server_list.yml --tags "$tag" -e "$parameters"
+      ansible-playbook -i inventory.yml server_list.yml --tags "$tag" -e "$parameters"
       ;;
     "view_console")
-      ansible-playbook -i inventory.yml main.yml --tags "$tag" -e "$parameters"
+      ./view_console.sh "$tag" "$parameters"
       ;;
     "upgrade_kernel")
       ansible-playbook -i inventory.yml kernel.yml --tags "$tag" -e "$parameters"
