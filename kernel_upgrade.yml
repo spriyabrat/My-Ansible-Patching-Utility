@@ -1,0 +1,132 @@
+---
+- name: Upgrade Kernel
+  hosts: "{{ cli_hosts }}"
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kernel_package_name: "linux-image-{{ kernel_version }}-aws"
+
+  tasks:
+    - name: Sanity check for Kernel Version
+      assert:
+        that:
+          - kernel_package_name is defined and kernel_package_name |length > 0
+      tags: upgrade_kernel
+
+    - name: Check current kernel version
+      command: uname -r
+      register: current_kernel
+      changed_when: false
+      tags: upgrade_kernel
+
+    - name: Extract kernel version from package name
+      command: echo "{{ kernel_package_name | regex_replace('linux-image-', '') }}"
+      register: extracted_kernel_version
+      tags: upgrade_kernel
+
+    - name: Debug current kernel version and input kernel version
+      debug:
+        msg: "Current Kernel: {{ current_kernel.stdout }}, Input Kernel: {{ extracted_kernel_version.stdout }}"
+      tags: upgrade_kernel
+
+    - name: Set DEBIAN_FRONTEND to noninteractive
+      lineinfile:
+        path: ~/.bashrc
+        line: 'export DEBIAN_FRONTEND=noninteractive'
+        insertafter: EOF
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Set GRUB_DEFAULT to Zero
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_DEFAULT='
+        line: 'GRUB_DEFAULT=0'
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Set Debconf option to keep the local version
+      debconf:
+        name: "grub-pc"
+        question: "grub-pc/install_devices"
+        vtype: "select"
+        value: "."
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Install Kernel
+      apt:
+        name: "{{ kernel_package_name }}"
+        state: present
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Update GRUB Menu
+      command: update-grub
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Disable unattended-upgrades.service
+      systemd:
+        name: unattended-upgrades.service
+        enabled: no
+        state: stopped
+      tags:
+        - unattended_disabled
+        - upgrade_kernel
+
+    - name: Disable Unattended Upgrades
+      replace:
+        path: /etc/apt/apt.conf.d/20auto-upgrades
+        regexp: '^APT::Periodic::Unattended-Upgrade "1";$'
+        replace: 'APT::Periodic::Unattended-Upgrade "0";'
+      tags:
+        - unattended_disabled
+        - upgrade_kernel
+
+    - name: Reboot
+      reboot:
+        reboot_timeout: 600
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Check Upgraded kernel version
+      command: uname -r
+      register: upgraded_kernel
+      changed_when: false
+      tags: upgrade_kernel
+
+    - name: Display upgraded kernel version
+      debug:
+        msg: "Previous Kernel: {{ current_kernel.stdout }}, Upgraded Kernel: {{ upgraded_kernel.stdout }}"
+      when: extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Check if dpkg lock files exist
+      stat:
+        path: "/var/lib/dpkg/lock"
+      register: dpkg_lock
+      tags: upgrade_kernel
+
+    - name: Kill processes holding the dpkg lock files
+      command: "fuser -vki -TERM /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend"
+      when: dpkg_lock.stat.exists and dpkg_lock.stat.size > 0 and extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Complete dpkg pending configuration steps
+      command: "dpkg --configure --pending"
+      when: dpkg_lock.stat.exists and dpkg_lock.stat.size > 0 and extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
+
+    - name: Print a message indicating cleaning is not needed
+      debug:
+        msg: "Lock files not available and No need for Cleaning"
+      when: not dpkg_lock.stat.exists or dpkg_lock.stat.size == 0
+      tags: upgrade_kernel
+
+    - name: Print a message indicating cleaning is done
+      debug:
+        msg: "Lock files removed and pending configuration completed."
+      when: dpkg_lock.stat.exists and dpkg_lock.stat.size > 0 and extracted_kernel_version.stdout > current_kernel.stdout
+      tags: upgrade_kernel
