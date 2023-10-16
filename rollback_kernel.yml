@@ -4,7 +4,7 @@
   become: yes
 
   vars:
-          kernel_version: "{{ kernel_version }}" #"5.4.0-1110-aws"
+          kernel_version: "{{ kernel_version }}-aws" #"5.4.0-1110-aws"
 
   tasks:
     - name: Capture current kernel version
@@ -22,7 +22,7 @@
       lineinfile:
         path: /etc/default/grub
         regexp: '^GRUB_DEFAULT='
-        line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux {{ kernel_version }}"'
+        line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux {{ kernel_version }}-aws"'
       when: backup_grub is success
       tags: rollback_kernel
 
