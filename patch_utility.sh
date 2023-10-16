@@ -129,7 +129,7 @@ help_message() {
   echo -e "      \033[0m\"kernel_version=value\"\033[0m  #Specify the old kernel version to which kernel should be downgraded"
   echo
   echo -e "    \033[0mExamples:\033[0m"
-  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050-aws\"\033[0m"
+  echo -e "      \033[1;32m[1]\033[0m \033[1m./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050\"\033[0m"
   echo
 }
 
@@ -163,7 +163,7 @@ display_commands() {
   echo "./patch_utility.sh attach_pro_license \"cli_hosts=dev\""
   echo "./patch_utility.sh detach_pro_license \"cli_hosts=dev\""
   echo "./patch_utility.sh unattended_disabled \"cli_hosts=dev\""
-  echo "./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050-aws\""
+  echo "./patch_utility.sh rollback_kernel \"cli_hosts=dev kernel_version=4.15.0-1050\""
   echo
 }
 
