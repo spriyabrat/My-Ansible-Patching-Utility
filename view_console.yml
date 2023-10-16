@@ -24,12 +24,20 @@
 
     - name: Extract candidate version
       set_fact:
-        candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() }}"
+              #candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('((\\.\\d+){2})\\.\\d+', '\\1') }}-aws"
+              # candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('(\\.)(\\d+)$', '-\\2') }}-aws"
+              candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('(\\.\\d+)$', '') }}"
+        #installed_version: "{{ apt_cache_output.stdout_lines[1].split(':')[1].strip() | regex_replace('(\\.\\d+)$', '') }}"
       tags: view_console
 
+    - name: Extract modified Version
+      set_fact:
+              modified_candidate_version: "{{ candidate_version.split('.')[:-1] | join('.') }}-{{ candidate_version.split('.')[-1] }}-aws"
+      tags: view_console
+                 
     - name: Set kernel upgrade status
       set_fact:
-        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == candidate_version else 'Not Desired' }}"
+        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == modified_candidate_version else 'Not Desired' }}"
       tags: view_console
         #- name: Debug current and input kernel versions
         #debug:
@@ -80,5 +88,5 @@
       tags: view_console
 
     - name: Filter servers with upgraded kernel
-      local_action: shell echo "{{ inventory_hostname }} | {{ ansible_distribution_version }} | {{ ansible_kernel }} | {{ ubuntu_release_status }} | {{ kernel_upgrade_status }} | {{ kernel_last_upgraded_date.stdout }} | {{ unattended_upgrades_status }} | {{ check_interval }} | {{ candidate_version }}" >> new_kernel.txt
+      local_action: shell echo "{{ inventory_hostname }} | {{ ansible_distribution_version }} | {{ ansible_kernel }} | {{ ubuntu_release_status }} | {{ kernel_upgrade_status }} | {{ kernel_last_upgraded_date.stdout }} | {{ unattended_upgrades_status }} | {{ check_interval }} | {{ modified_candidate_version }}" >> new_kernel.txt
       tags: view_console
