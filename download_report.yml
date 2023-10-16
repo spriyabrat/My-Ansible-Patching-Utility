@@ -28,16 +28,14 @@
         candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('(\\.\\d+)$', '') }}"
       tags: download_report
 
-    - name: Set kernel upgrade status
+    - name: Extract modified Version
       set_fact:
-        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == candidate_version else 'Not_Desired' }}"
+              modified_candidate_version: "{{ candidate_version.split('.')[:-1] | join('.') }}-{{ candidate_version.split('.')[-1] }}-aws"
       tags: download_report
 
-    - name: Debug current and input kernel versions
-      debug:
-        msg:
-          - "Current Kernel Version: {{ kernel_version_output.stdout }}"
-            #- "Input Kernel Version: {{ kernel_version }}"
+    - name: Set kernel upgrade status
+      set_fact:
+        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == modified_candidate_version else 'Not_Desired' }}"
       tags: download_report
 
     - name: Fetch Ubuntu Release Status
@@ -66,10 +64,6 @@
       register: canonical_livepatch_config_output
       tags: download_report
 
-      #- name: Extract check-interval value
-      #set_fact:
-      # check_interval: "{{ canonical_livepatch_config_output.stdout_lines | select('match', 'check-interval: (.+)') | map('regex_replace', 'check-interval: (.+)', '\\1') | first }}"
-      #tags: download_report
     - name: Extract check-interval value
       set_fact:
         check_interval: "{{ canonical_livepatch_config_output.stdout_lines | select('match', 'check-interval: (.+)') | map('regex_replace', 'check-interval: (.+) # minutes', '\\1') | first | regex_replace(' ', '') }}"
@@ -81,20 +75,10 @@
           - "Check Interval: {{ check_interval }}"
       tags: download_report
      
-      #- name: Run apt-cache policy to get candidate version
-      #command: "apt-cache policy linux-image-aws"
-      #register: apt_cache_output
-      #tags: download_report
-
-      #- name: Extract candidate version
-      #set_fact:
-      # candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() }}"
-      #tags: download_report
-
     - name: Filter servers with upgraded kernel
       local_action:
               module: lineinfile
-              dest: "Server_List{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
+              dest: "Server_List_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
               line: "Hostname,Ubuntu Version,Kernel Version,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Time"
               create: yes
       tags: download_report
@@ -103,7 +87,7 @@
       local_action:
               module: lineinfile
               dest: "Server_List_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
-              line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ candidate_version }},{{ check_interval }}"
+              line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
               create: yes
       register: csv_file_result
       tags: download_report
