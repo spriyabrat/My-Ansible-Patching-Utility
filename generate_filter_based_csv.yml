@@ -1,0 +1,152 @@
+---
+#How to run : ./patch_utility.sh view_hosts "cli_hosts=all cli_region=[your_region] status_pro=true suffix=[any_value]"
+
+- name: Filter servers based on kernel version
+  hosts: "{{ cli_hosts }}:&tag_region_{{ cli_region }}"
+  vars:
+    status_pro: false
+    status_notpro: false
+    kernel_latest: false
+    kernel_outdated: false
+    suffix: "{{ my_custom_suffix }}"
+  
+  tasks:
+    - name: Check required variables
+      assert:
+        that:
+          - (status_pro or status_notpro or kernel_latest or kernel_outdated) and suffix is defined
+        msg: "At least one of status_pro, status_notpro, kernel_latest, or kernel_outdated and suffix must be set to true as an extra variable."
+      tags: view_hosts
+
+    - name: Get kernel version
+      command: uname -r
+      register: kernel_version_output
+      tags: view_hosts
+
+    - name: Run apt-cache policy to get candidate version
+      command: apt-cache policy linux-image-aws
+      register: apt_cache_output
+      tags: view_hosts
+
+    - name: Extract candidate version
+      set_fact:
+        candidate_version: "{{ apt_cache_output.stdout_lines[2].split(':')[1].strip() | regex_replace('(\\.\\d+)$', '') }}"
+      tags: view_hosts
+
+    - name: Extract modified Version
+      set_fact:
+              modified_candidate_version: "{{ candidate_version.split('.')[:-1] | join('.') }}-{{ candidate_version.split('.')[-1] }}-aws"
+      tags: view_hosts
+
+    - name: Set kernel upgrade status
+      set_fact:
+        kernel_upgrade_status: "{{ 'Desired' if kernel_version_output.stdout == modified_candidate_version else 'Not_Desired' }}"
+      tags: view_hosts
+
+    - name: Fetch Ubuntu Release Status
+      command: pro security-status
+      register: ubuntu_security_status_output
+      tags: view_hosts
+
+    - name: Determine Ubuntu status based on the command output
+      set_fact:
+        ubuntu_release_status: "{{ 'Ubuntu Pro' if 'This machine is attached to an Ubuntu Pro subscription' in ubuntu_security_status_output.stdout else 'Ubuntu Standard' }}"
+      tags: view_hosts
+
+    - name: Get Unattended Upgrades status
+      command: systemctl status unattended-upgrades.service
+      register: unattended_upgrades_status
+      ignore_errors: true
+      tags: view_hosts
+
+    - name: Set Unattended Upgrades status as a fact
+      set_fact:
+        unattended_upgrades_status: "{{ 'active' if unattended_upgrades_status.rc == 0 and 'Active: active (running)' in (unattended_upgrades_status.stdout | default('')) else 'inactive' }}"
+      tags: view_hosts
+
+    - name: Get check-interval from canonical-livepatch config
+      become: yes
+      command: canonical-livepatch config
+      register: canonical_livepatch_config_output
+      tags: view_hosts
+
+    - name: Extract check-interval value
+      set_fact:
+        check_interval: "{{ canonical_livepatch_config_output.stdout_lines | select('match', 'check-interval: (.+)') | map('regex_replace', 'check-interval: (.+) # minutes', '\\1') | first | regex_replace(' ', '') }}"
+      tags: view_hosts
+
+    - name: Filter servers for Ubuntu Pro
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Pro_{{ suffix }}.csv"
+        line: "Hostname,Tag Name,Ubuntu Version,Current Kernel,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Interval Time"
+        create: yes
+      when: ubuntu_release_status == "Ubuntu Pro" and status_pro
+      tags: view_hosts
+
+    - name: Append data to Ubuntu Pro CSV file
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Pro_{{ suffix }}.csv"
+        line: "{{ inventory_hostname }},{{ ansible_fqdn }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
+        create: yes
+      when: ubuntu_release_status == "Ubuntu Pro" and status_pro
+      register: csv_file_result
+      tags: view_hosts
+
+    - name: Filter servers for Not Ubuntu Pro
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Not_Pro_{{ suffix }}.csv"
+        line: "Hostname,Tag Name,Ubuntu Version,Current Kernel,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Interval Time"
+        create: yes
+      when: ubuntu_release_status != "Ubuntu Pro" and status_notpro
+      tags: view_hosts
+
+    - name: Append data to Not Ubuntu Pro CSV file
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Not_Pro_{{ suffix }}.csv"
+        line: "{{ inventory_hostname }},{{ ansible_fqdn }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
+        create: yes
+      when: ubuntu_release_status != "Ubuntu Pro" and status_notpro
+      register: csv_file_result
+      tags: view_hosts
+
+    - name: Filter servers for Kernel Version Desired
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Kernel_latest_{{ suffix }}.csv"
+        line: "Hostname,Tag Name,Ubuntu Version,Current Kernel,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Interval Time"
+        create: yes
+      when: kernel_upgrade_status == "Desired" and kernel_latest
+      tags: view_hosts
+
+    - name: Append data to Kernel Version Desired CSV file
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Kernel_latest_{{ suffix }}.csv"
+        line: "{{ inventory_hostname }},{{ ansible_fqdn }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
+        create: yes
+      when: kernel_upgrade_status == "Desired" and kernel_latest
+      register: csv_file_result
+      tags: view_hosts
+
+    - name: Filter servers for Kernel Version Not Desired
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Kernel_outdated_{{ suffix }}.csv"
+        line: "Hostname,Tag Name,Ubuntu Version,Current Kernel,Pro Status,Kernel Status,Uattn Status,Latest Version,Check Interval Time"
+        create: yes
+      when: kernel_upgrade_status == "Not_Desired" and kernel_outdated
+      tags: view_hosts
+
+    - name: Append data to Kernel Version Not Desired CSV file
+      local_action:
+        module: lineinfile
+        dest: "Server_List_Kernel_outdated_{{ suffix }}.csv"
+        line: "{{ inventory_hostname }},{{ ansible_fqdn }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
+        create: yes
+      when: kernel_upgrade_status == "Not_Desired" and kernel_outdated
+      register: csv_file_result
+      tags: view_hosts
