@@ -11,5 +11,5 @@
       tags: detach_pro_license
 
     - name: Remove License
-      script: rollback.sh
+      script: rollback_pro.sh
       tags: detach_pro_license
