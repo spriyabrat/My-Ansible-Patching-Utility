@@ -2,18 +2,19 @@
   tasks:
       
       - name: extract latest file
-        shell: ls -1t server* | head -1
+        #shell: ls -1t server* | head -1
+        shell: basename $(ls -1t /tmp/Server* | head -1)
         register: csv_results
 
       - name: Sending an e-mail using AWS SES
         mail:
           host: email-smtp.us-east-1.amazonaws.com  # Replace with your AWS SES SMTP server
           port: 465  # Replace with the appropriate port for AWS SES
-          username: "AKIAIWR5GJ4KS3ANU6QQ"  # Replace with your AWS SES SMTP username
-          password: "AgQue6eb2bAUtJAvON1nx91wE60UtTHQaTHOQT6lDCsn"  # Replace with your AWS SES SMTP password
-          to: spbeurik91@gmail.com #mrotmanmoras@gmail.com  # Recipient email address
+          username: "<username>"  # Replace with your AWS SES SMTP username
+          password: "<password>"  # Replace with your AWS SES SMTP password
+          to: spbeurik91@gmail.com
           subject: Your Email Subject
           body: Your email body
-          from: ops@helpshift.com  # Your email sender address
+          from: ops@saswat.com
           secure: starttls  # Use 'starttls' for AWS SESi
-          attach: "{{ csv_results.stdout }}"
+          attach: "/tmp/{{ csv_results.stdout }}"
