@@ -97,4 +97,4 @@
         msg: "Server Report Downloaded: {{ csv_file_result.diff[0].after_header.split()[0] }}"
       tags: view_hosts
 
-- import_playbook: mail.yml
+- import_playbook: mail_integration.yml
