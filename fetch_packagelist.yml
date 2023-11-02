@@ -1,0 +1,7 @@
+---
+- name: compatibility check
+  hosts: "{{ cli_hosts }}"
+  tasks:
+    - name: Run 'dpkg -l' command to list installed packages
+      shell: dpkg -l > "installed_packages_{{ ansible_fqdn }}.txt"
+      delegate_to: localhost
