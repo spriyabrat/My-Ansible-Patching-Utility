@@ -2,17 +2,7 @@
 - name: Filter servers based on kernel version
   hosts: "{{ cli_hosts }}"
   gather_facts: true
-  
-  #vars:
-          #kernel_version: "{{ kernel_version }}" #"5.4.0-1110-aws"
-          #reference_kernel_version: "5.4.0-1110-aws"
-
   tasks:
-          # - name: remove files
-          #command: rm -rf /home/saswat.beurik/upgrade/server_list.txt
-          #delegate_to: localhost
-          #tags: view_hosts
-
     - name: Get kernel version
       shell: uname -r
       register: kernel_version_output
@@ -30,7 +20,7 @@
 
     - name: Extract modified Version
       set_fact:
-              modified_candidate_version: "{{ candidate_version.split('.')[:-1] | join('.') }}-{{ candidate_version.split('.')[-1] }}-aws"
+        modified_candidate_version: "{{ candidate_version.split('.')[:-1] | join('.') }}-{{ candidate_version.split('.')[-1] }}-aws"
       tags: view_hosts
 
     - name: Set kernel upgrade status
@@ -85,10 +75,10 @@
 
     - name: Filter servers with upgraded kernel
       local_action:
-              module: lineinfile
-              dest: "server_List_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
-              line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
-              create: yes
+        module: lineinfile
+        dest: "server_List_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}_{{ ansible_date_time.minute }}.csv"
+        line: "{{ inventory_hostname }},{{ ansible_distribution_version }},{{ ansible_kernel }},{{ ubuntu_release_status }},{{ kernel_upgrade_status }},{{ unattended_upgrades_status }},{{ modified_candidate_version }},{{ check_interval }}"
+        create: yes
       register: csv_file_result
       tags: view_hosts
  
