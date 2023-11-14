@@ -1,20 +1,33 @@
-- hosts: localhost
+#Purpose This playbook is used to configure mail to send attachment.
+#how to run the playbook: ansible-playbook2 ansible2/adhoc_playbooks/mail_config.yml -e 'cli_hosts=tag_Name_<hostname> cli_cloud_provider=ec2 cli_ec2_dc_switch=<n-virginia|beijing>' --vault-password-file ~/.vault -D
+
+- name: Send Server info through mail
+  hosts: localhost
+  vars_files:
+    - ../vars_files/secrets.yml
+  vars:
+    ses_zaphod_nv_username: "{{ ses_zaphod_nv_username }}"
+    ses_zaphod_nv_password: "{{ ses_zaphod_nv_password }}"
+
   tasks:
-      
+
       - name: extract latest file
-        #shell: ls -1t server* | head -1
         shell: basename $(ls -1t /tmp/Server* | head -1)
         register: csv_results
 
       - name: Sending an e-mail using AWS SES
         mail:
-          host: email-smtp.us-east-1.amazonaws.com  # Replace with your AWS SES SMTP server
-          port: 465  # Replace with the appropriate port for AWS SES
-          username: "<username>"  # Replace with your AWS SES SMTP username
-          password: "<password>"  # Replace with your AWS SES SMTP password
-          to: spbeurik91@gmail.com
-          subject: Your Email Subject
-          body: Your email body
-          from: ops@saswat.com
-          secure: starttls  # Use 'starttls' for AWS SESi
+          host: email-smtp.us-west-2.amazonaws.com
+          port: 465
+          username: "{{ ses_zaphod_nv_username }}"
+          password: "{{ ses_zaphod_nv_password }}"
+          to: "ops@helpshift.com,saswat.beurik@helpshift.com"
+          subject: "OS-patching daily report {{ ansible_date_time.date }}"
+          body: "Hi,\n \
+                 Please find the attached CSV file.\n \
+
+                 Best regards,\n \
+                 Devops Team"
+          from: palantir@helpshift.com
+          secure: starttls
           attach: "/tmp/{{ csv_results.stdout }}"
