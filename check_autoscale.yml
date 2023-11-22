@@ -1,0 +1,11 @@
+- name: Sample playbook
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vars_files/clusters.yml
+  vars:
+    autoscaled: "{{ 'yes' if clusters[cli_service]['autoscaling'] | default(false) else 'no' }}"
+  tasks:
+    - name: debug me
+      debug:
+        msg: "Hi Service: {{ cli_service }} autoscaled: {{ autoscaled }}"
