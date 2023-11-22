@@ -1,0 +1,19 @@
+---
+- name: Gather Boot Time
+  hosts: dev
+  tasks:
+    - name: Get boot time
+      command: "who -b"
+      register: boot_time_output
+
+    - name: Display boot time
+      debug:
+        var: boot_time_output.stdout_lines
+
+    - name: Get uptime
+      command: "uptime -p"
+      register: uptime_output
+
+    - name: Display uptime
+      debug:
+        var: uptime_output.stdout_lines
