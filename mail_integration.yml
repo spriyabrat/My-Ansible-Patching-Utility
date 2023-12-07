@@ -21,7 +21,7 @@
           port: 465
           username: "{{ ses_zaphod_nv_username }}"
           password: "{{ ses_zaphod_nv_password }}"
-          to: "ops@helpshift.com,saswat.beurik@helpshift.com"
+          to: "ops@saswat.com,saswat.beurik@gmail.com"
           subject: "OS-patching daily report {{ ansible_date_time.date }}"
           body: "Hi,\n \
                  Please find the attached CSV file.\n \
