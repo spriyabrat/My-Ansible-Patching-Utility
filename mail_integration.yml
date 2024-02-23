@@ -22,7 +22,7 @@
           username: "{{ ses_zaphod_nv_username }}"
           password: "{{ ses_zaphod_nv_password }}"
           to: "devops@saswat.com,saswat.beurik@gmail.com"
-          subject: "OS-patching daily report {{ ansible_date_time.date }}"
+          subject: "Daily report {{ ansible_date_time.date }}"
           body: "Hi,\n \
                  Please find the attached CSV file.\n \
 
