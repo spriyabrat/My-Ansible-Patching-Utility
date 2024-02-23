@@ -12,7 +12,7 @@ generate_output() {
 }
 
 # Specify the path to the text file
-file_path="/home/saswat.beurik/upgrade/new_kernel.txt"  # Replace with the actual path to your file
+file_path="/home/saswat/upgrade/new_kernel.txt"  # Replace with the actual path to your file
 
 # Check if the file exists
 if [ -f "$file_path" ]; then
