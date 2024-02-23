@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Fetch server list
-ansible-playbook acom.yml -e 'cli_hosts=tag_Name_upperthrust-bastion01:tag_Name_test-ut0201'
+ansible-playbook server_list.yml -e 'cli_hosts=tag_Name_node1:tag_Name_node2'
 
 #!/bin/bash
 
