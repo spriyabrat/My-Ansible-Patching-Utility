@@ -19,7 +19,7 @@
       tags: attach_pro_license
 
     - name: Activate Ubuntu Pro license
-      command: pro attach C13ZzcxfjYkS8uyebARCU2pfTZ1PmM
+      command: pro attach <token>
       register: results
       when: ansible_distribution_release == "bionic"
       tags: attach_pro_license
