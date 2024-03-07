@@ -4,4 +4,7 @@
 #send daily report for os-patching related activity at 10.30 am IST
 0 5 * * * /bin/bash $HOME/repo/ansible/playbooks/send_mail.sh > /tmp/ansible_os-patching.log 2>&1
 
+#test cron functionality 
+#* * * * * (date; sleep 2) >> /home/saswat.beurik/upgrade/log_time.txt
+
 
