@@ -10,3 +10,23 @@
  
   - name: Install security updates
     shell: apt-get upgrade -oDir::Etc::SourceList=/etc/apt/security.sources.list --force-yes -y
+
+-----------
+---
+- name: Copy security repositories
+  hosts: dev
+  become: yes
+  gather_facts: yes
+ 
+  vars:
+    package_name: "{{ package_name }}"
+ 
+  tasks:
+    - name: Create a copy of security repositories
+      shell: cat /etc/apt/sources.list.d/ubuntu-esm-apps.list /etc/apt/sources.list.d/ubuntu-esm-infra.list | grep security > /etc/apt/security.sources.list
+ 
+    - name: Update a specific package
+      apt:
+        update_cache: yes
+        name: "{{ package_name }}"
+        state: latest
