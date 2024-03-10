@@ -1,0 +1,12 @@
+---
+- name: compatibility check
+  hosts: "{{ cli_hosts }}:&tag_region_{{ cli_region }}"
+
+ tasks:
+  - name: Run the dpkg-query for check packages_dependencies
+    command: dpkg-query -W -f='${Package} ${Depends}\n'
+    register: packages_dependencies
+
+  - name: Save the list of services to a file
+    shell: echo "{{ packages_dependencies.stdout }}" > "/tmp/output_directory/dependencies_{{ ansible_fqdn }}.txt"
+    delegate_to: localhost
